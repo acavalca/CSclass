@@ -1,0 +1,18 @@
+{% extends "encyclopedia/layout.html" %}
+
+{% block title %}
+    New
+{% endblock %}
+
+{% block body %}
+    <h1>Enter a New Entry</h1>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form }}
+        <!-- Name:<input type="text" name="newEntryName" placeholder="Enter name here">
+        <textarea name="newEntryBody" placeholder="Enter Markdown text here..."></textarea> -->
+        <div>
+            <input type="submit">
+        </div>
+    </form>
+{% endblock %}
