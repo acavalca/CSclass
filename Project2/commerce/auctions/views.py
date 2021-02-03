@@ -4,18 +4,52 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django import forms
-from .models import User, Listing
+from .models import User, Listing, Bid
+from django.core.exceptions import MultipleObjectsReturned
 
 
 def index(request):
     return render(request, "auctions/index.html", {
-        "listings": Listing.objects.filter(creator=request.user)
+        "listings": Listing.objects.filter(isOpen=True)
     })
 
 def listingsView(request, listingID):
-    return render(request, "auctions/listing.html", {
-        "listing": Listing.objects.get(pk=listingID),
-    })
+    if request.method == "POST":
+        newBidPrice = request.POST["newBidPrice"]
+        newBidCreator = request.user
+        newBidListing = Listing.objects.get(pk=listingID)
+        newBid = Bid(price=newBidPrice, creator=newBidCreator, listing=newBidListing)
+        newBid.save()
+    if Listing.objects.get(pk=listingID).creator == request.user:
+        isSameUser = True
+    else:
+        isSameUser = False
+    if Listing.objects.get(pk=listingID).bids.exists():
+        highestBid = Listing.objects.get(pk=listingID).price
+        for bid in Bid.objects.all():
+            if highestBid <= bid.price:
+                highestBid = bid.price
+        if Bid.objects.get(price=highestBid).creator == request.user:
+            userIsWinning = True
+        else:
+            userIsWinning = False
+        return render(request, "auctions/listing.html", {
+            "listing": Listing.objects.get(pk=listingID),
+            "isSameUser": isSameUser,
+            "highestBid": Bid.objects.get(price=highestBid),
+            "minBid": highestBid+1,
+            "userIsWinning": userIsWinning,
+            "noBid": False,
+        })
+    else:
+        return render(request, "auctions/listing.html", {
+            "listing": Listing.objects.get(pk=listingID),
+            "isSameUser": isSameUser,
+            "highestBid": Listing.objects.get(pk=listingID).price,
+            "minBid": Listing.objects.get(pk=listingID).price+1,
+            "userIsWinning": False,
+            "noBid": True,
+        })
 
 def createListing(request):
     if request.method == "POST":

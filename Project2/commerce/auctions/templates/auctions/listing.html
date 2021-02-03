@@ -8,4 +8,26 @@
         <li>Description: {{ listing.body }}</li>
         <li>Creator: {{ listing.creator }}</li>
     </ul>
+    {% if noBid %}
+        There currently is no bid
+    {% else %}
+        {% if tieHappened %}
+            Resolve the tie in bids, it should not happen.
+        {% else %}
+            {% if userIsWinning %}
+                Your {{ highestBid.price }} bid is winning!
+            {% else %}
+                The highest bid is of {{ highestBid.price }} by {{ highestBid.creator }}
+            {% endif %}
+        {% endif %}
+    {% endif %}
+
+
+    {% if not isSameUser %}
+    <form method="POST">
+        {% csrf_token %}
+        <input type="number" name="newBidPrice" placeholder="Input your Bid" min="{{ minBid }}">
+        <input type="submit" value="Place Bid">
+    </form>
+    {% endif %}
 {% endblock %}
