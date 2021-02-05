@@ -14,20 +14,26 @@
         {% if tieHappened %}
             Resolve the tie in bids, it should not happen.
         {% else %}
-            {% if userIsWinning %}
-                Your {{ highestBid.price }} bid is winning!
+            {% if listing.isOpen %}
+                {% if userIsWinning %}
+                    Your {{ highestBid.price }} bid is winning!
+                {% else %}
+                    The highest bid is of {{ highestBid.price }} by {{ highestBid.creator }}
+                {% endif %}
             {% else %}
-                The highest bid is of {{ highestBid.price }} by {{ highestBid.creator }}
+                {% if userIsWinning %}
+                    You won!
+                {% else %}
+                    {{ highestBid.creator }} won with a bid  of {{ highestBid.price }}
+                {% endif %}
             {% endif %}
         {% endif %}
     {% endif %}
-
-
-    {% if not isSameUser %}
-    <form method="POST">
-        {% csrf_token %}
-        <input type="number" name="newBidPrice" placeholder="Input your Bid" min="{{ minBid }}">
-        <input type="submit" value="Place Bid">
-    </form>
+    {% if listing.isOpen %}
+        <form method="POST" action="">
+            {% csrf_token %}
+            <input type="number" name="newBidPrice" placeholder="Input your Bid" min="{{ minBid }}">
+            <input type="submit" value="Place Bid">
+        </form>
     {% endif %}
 {% endblock %}

@@ -14,19 +14,18 @@ def index(request):
     })
 
 def listingsView(request, listingID):
+    currentListing = Listing.objects.get(pk=listingID)
     if request.method == "POST":
         newBidPrice = request.POST["newBidPrice"]
         newBidCreator = request.user
-        newBidListing = Listing.objects.get(pk=listingID)
+        newBidListing = currentListing
         newBid = Bid(price=newBidPrice, creator=newBidCreator, listing=newBidListing)
         newBid.save()
-    if Listing.objects.get(pk=listingID).creator == request.user:
-        isSameUser = True
-    else:
-        isSameUser = False
-    if Listing.objects.get(pk=listingID).bids.exists():
-        highestBid = Listing.objects.get(pk=listingID).price
-        for bid in Bid.objects.all():
+    if currentListing.creator == request.user:
+        return HttpResponseRedirect(reverse("listingsUserView", args=(f"{listingID}")))
+    if currentListing.bids.exists():
+        highestBid = currentListing.price
+        for bid in currentListing.bids.all():
             if highestBid <= bid.price:
                 highestBid = bid.price
         if Bid.objects.get(price=highestBid).creator == request.user:
@@ -34,22 +33,43 @@ def listingsView(request, listingID):
         else:
             userIsWinning = False
         return render(request, "auctions/listing.html", {
-            "listing": Listing.objects.get(pk=listingID),
-            "isSameUser": isSameUser,
+            "listing": currentListing,
             "highestBid": Bid.objects.get(price=highestBid),
             "minBid": highestBid+1,
             "userIsWinning": userIsWinning,
             "noBid": False,
         })
-    else:
-        return render(request, "auctions/listing.html", {
-            "listing": Listing.objects.get(pk=listingID),
-            "isSameUser": isSameUser,
-            "highestBid": Listing.objects.get(pk=listingID).price,
-            "minBid": Listing.objects.get(pk=listingID).price+1,
-            "userIsWinning": False,
-            "noBid": True,
+    return render(request, "auctions/listing.html", {
+        "listing": currentListing,
+        "highestBid": currentListing.price,
+        "minBid": currentListing.price+1,
+        "userIsWinning": False,
+        "noBid": True,
+    })
+
+def listingsUserView(request, listingID):
+    currentListing = Listing.objects.get(pk=listingID)
+    if currentListing.creator != request.user:
+        return HttpResponseRedirect(reverse("listingsView", args=(f"{listingID}")))
+    if request.method == "POST":
+        currentListing.isOpen = bool(request.POST["isOpenForm"])
+        currentListing.save()
+
+    if currentListing.bids.exists():
+        highestBid = currentListing.price
+        for bid in currentListing.bids.all():
+            if highestBid <= bid.price:
+                highestBid = bid.price
+        return render(request, "auctions/listingUser.html", {
+            "listing": currentListing,
+            "highestBid": Bid.objects.get(price=highestBid),
+            "noBid": False,
         })
+    return render(request, "auctions/listingUser.html", {
+        "listing": currentListing,
+        "highestBid": Listing.objects.get(pk=listingID).price,
+        "noBid": True,
+    })
 
 def createListing(request):
     if request.method == "POST":
@@ -58,7 +78,7 @@ def createListing(request):
         newListingBody = request.POST["newListingBody"]
         newListingImgURL = request.POST["newListingImgURL"]
         newListingUser = request.user
-        newListing = Listing(name=newListingName, price=newListingPrice, body=newListingBody, creator=newListingUser, imageURL=newListingImgURL)
+        newListing = Listing(name=newListingName, price=newListingPrice, body=newListingBody, creator=newListingUser, imageURL=newListingImgURL, isOpen=True)
         newListing.save()
     return render(request, "auctions/createListing.html")
 

@@ -1,0 +1,44 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h2>Listing: {{ listing.name }}</h2>
+    <ul>
+        <li><img src="{{ listing.imageURL }}" style="width:300px;"></li>
+        <li>Price: {{ listing.price }}</li>
+        <li>Description: {{ listing.body }}</li>
+        <li>Creator: {{ listing.creator }}</li>
+    </ul>
+    
+
+    {% if listing.isOpen %}
+        {% if noBid %}
+            There currently is no bid
+        {% else %}
+            {% if tieHappened %}
+                Resolve the tie in bids, it should not happen.
+            {% else %}
+                The highest bid is of {{ highestBid.price }} by {{ highestBid.creator }}
+            {% endif %}
+        {% endif %}
+
+        <form method="POST" action="">
+            {% csrf_token %}
+            <label for="isOpenForm">Change this Listing to: </label>
+            <select name="isOpenForm" id="isOpenForm">
+                <option value="True">Open</option>
+                <option value="">Closed</option>
+            </select>
+            <input type="submit">
+        </form>
+    {% else %}
+        {% if noBid %}
+            No one won the Listing.
+        {% else %}
+            {% if tieHappened %}
+                Resolve the tie in bids, it should not happen.
+            {% else %}
+                The winner is {{ highestBid.creator }} with a bid of {{ highestBid.price }}
+            {% endif %}
+        {% endif %}
+    {% endif %}
+{% endblock %}
