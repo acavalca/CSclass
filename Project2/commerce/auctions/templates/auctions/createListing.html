@@ -5,10 +5,16 @@
 
     <form method="POST">
         {% csrf_token %}
-        <input type="text" name="newListingName" placeholder="New Listing">
-        <input type="number" name="newListingPrice">
-        <input type="textArea" name="newListingBody" placeholder="Description">
+        <input type="text" name="newListingName" placeholder="New Listing" required>
+        <input type="number" name="newListingPrice" required>
+        <input type="textArea" name="newListingBody" placeholder="Description" required>
         <input type="text" name="newListingImgURL" placeholder="Img URL">
+        <select name="whichCategory" id="whichCategory">
+            <option value="">---</option>
+            {% for category in categoriesList %}
+                <option value="{{ category.name }}">{{ category.name }}</option>
+            {% endfor %}
+        </select>
         <input type="submit" value="create">
     </form>
 {% endblock %}

@@ -2,7 +2,7 @@
 
 {% block body %}
     <h2>Listing: {{ listing.name }}</h2>
-    <ul>
+    <ul class="circleless">
         <li><img src="{{ listing.imageURL }}" style="width:300px;"></li>
         <li>Price: {{ listing.price }}</li>
         <li>Description: {{ listing.body }}</li>
@@ -12,28 +12,64 @@
         There currently is no bid
     {% else %}
         {% if tieHappened %}
-            Resolve the tie in bids, it should not happen.
+            Resolve the tie of ${{ highestBid.price }} in bids, it should not happen.
         {% else %}
             {% if listing.isOpen %}
                 {% if userIsWinning %}
-                    Your {{ highestBid.price }} bid is winning!
+                    Your ${{ highestBid.price }} bid is winning!
                 {% else %}
-                    The highest bid is of {{ highestBid.price }} by {{ highestBid.creator }}
+                    The highest bid is of ${{ highestBid.price }} by {{ highestBid.creator }}
                 {% endif %}
             {% else %}
                 {% if userIsWinning %}
                     You won!
                 {% else %}
-                    {{ highestBid.creator }} won with a bid  of {{ highestBid.price }}
+                    {{ highestBid.creator }} won with a bid  of ${{ highestBid.price }}
                 {% endif %}
             {% endif %}
         {% endif %}
     {% endif %}
-    {% if listing.isOpen %}
+    {% if user.is_authenticated %}
+        {% if listing.isOpen %}
+            {% if isSameUser %}
+                <form method="POST" action="">
+                    {% csrf_token %}
+                    <label for="isOpenForm">Change this Listing to: </label>
+                    <select name="isOpenForm" id="isOpenForm">
+                        <option value="True">Open</option>
+                        <option value="">Closed</option>
+                    </select>
+                    <input type="submit" name="openSubmit">
+                </form>
+            {% else %}
+                <form method="POST" action="">
+                    {% csrf_token %}
+                    <input type="number" name="newBidPrice" placeholder="Input your Bid" min="{{ minBid }}">
+                    <input type="submit" value="Place Bid" name="bidSubmit">
+                </form>
+            {% endif %}
+        {% endif %}
+            <form method="POST" action="">
+                {% csrf_token %}
+                <select name="placeOnWatchlist" id="placeOnWatchlist">
+                    <option value="True">Place on Watchlist</option>
+                    <option value="">Remove from Watchlist</option>
+                </select>
+                <input type="submit" name="watchlistSubmit">
+            </form>
         <form method="POST" action="">
             {% csrf_token %}
-            <input type="number" name="newBidPrice" placeholder="Input your Bid" min="{{ minBid }}">
-            <input type="submit" value="Place Bid">
+            <input type="text" name="newComment" placeholder="Input your comment">
+            <input type="submit" value="Submit Comment" name="commentSubmit">
         </form>
     {% endif %}
+    <br>
+    <br>
+    Comments:<br>
+    <br>
+    {% for comment in comments %}
+        {{comment.creator }}:<br>
+        {{ comment.body }}<br>
+        <br>
+    {% endfor %}
 {% endblock %}
